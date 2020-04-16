@@ -1,0 +1,29 @@
+module test;
+  reg clk,reset;
+  wire [7:0] count;
+  
+  counter1 DUT(clk,reset,count);
+  
+  initial
+    begin
+      clk = 0; reset = 0;
+    end
+  
+  initial
+    forever #5 clk = ~clk;
+  
+  initial
+    begin
+      #2 reset = 1;
+      #2 reset = 0;
+      #200 reset = 1;
+      #10 $finish;
+    end
+  initial
+    begin
+      $dumpfile("count.vcd");
+      $dumpvars(0,test);
+      $monitor($time, count);
+    end
+endmodule
+      
