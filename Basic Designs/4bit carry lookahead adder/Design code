@@ -1,0 +1,39 @@
+module g_p_generator(a,b,p,g);
+  input a,b;
+  output p,g;
+  xor M1(p,a,b);
+  and M2(g,a,b);
+endmodule
+
+module carry_lookahead(a,b,cin,c);
+  input [3:0] a,b;
+  input cin;
+  output [3:0]c;
+  wire [3:0] p,g;
+  g_p_generator G1(a[0],b[0],p[0],g[0]);
+  assign c[0] = cin;
+  g_p_generator G2(a[1],b[1],p[1],g[1]);
+  assign c[1] = g[0] | (p[0]&c[0]);
+  g_p_generator G3(a[2],b[2],p[2],g[2]);
+  assign c[2] = g[1] | (p[1]&g[0] | p[1]&p[0]&c[0]);
+  g_p_generator G4(a[3],b[3],p[3],g[3]);
+  assign c[3] = (g[2]| p[2]&g[1] | p[2]&p[1]&g[0] | p[2]&p[1]&p[0]&c[0]);
+endmodule
+
+module adder(a,b,cin,s,cout);
+  input [3:0] a,b;
+  input cin;
+  output [3:0]s;
+  output cout;
+  wire [3:0] p,g,c;
+  carry_lookahead C1(a,b,cin,c);
+  g_p_generator G1(a[0],b[0],p[0],g[0]);
+  g_p_generator G2(a[1],b[1],p[1],g[1]);
+  g_p_generator G3(a[2],b[2],p[2],g[2]);
+  g_p_generator G4(a[3],b[3],p[3],g[3]);
+  xor X0(s[0],c[0],p[0]);
+  xor X1(s[1],c[1],p[1]);
+  xor X2(s[2],c[2],p[2]);
+  xor X3(s[3],c[3],p[3]);
+  assign cout = g[3] | (p[3]&g[2]) | (p[3]&p[2]&g[1]) | (p[3]&p[2]&p[1]&g[0]) | (p[3]&p[2]&p[1]&p[0]&c[0]);
+endmodule
