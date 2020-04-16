@@ -1,0 +1,105 @@
+// Full adder sum generation using UDP
+
+primitive sum_udp (sum,a,b,c);
+	input a,b,c;
+	output sum;
+	table
+ //   a   b   c  :  sum	 
+      0	  0   0  :  0;
+      0	  0   1  :  1;
+      0	  1   0  :  1;
+      0	  1   1  :  0;
+      1	  0   0  :  1;
+      1	  0   1  :  0;
+      1	  1   0  :  0;
+      1	  1   1  :  1;
+    endtable
+endprimitive
+
+// Full adder carry generation using UDP
+
+primitive carry_udp (cout,a,b,c);
+	input a,b,c;
+	output cout;
+	table
+  //  a   b   c  :  cout
+      0   0   ?  :  0;		// ? corresponds to don't cares
+      0   ?   0  :  0;
+      ?   1   1  :  1;
+      ?   0   0  :  0;
+      1   ?   1  :  1;
+      1   1   ?  :  1;
+    endtable
+endprimitive
+
+
+// Instantiating UDP's
+// Full adder description
+module full_adder(sum,cout,a,b,c);
+  input a,b,c;
+  output sum,cout;
+  sum_udp M1(sum,a,b,c);
+  carry_udp M2(cout,a,b,c);
+endmodule
+      
+
+// Level sensitive D type latch
+primitive d_latch(q,d,EN,clr);
+	input d,EN,clr;
+	output reg q;   // While using UDP for sequential circuits always declare output as reg
+	initial
+      q = 0;	// This is optional
+	table
+ //   d   EN   clr :  q  :  q_new
+      ?    ?    1  :  ?  :   0;
+      0    1    0  :  ?  :   0; 
+	    1    1	  0  :  ?  :   1;
+	    ?    0    0  :  ?  :   -;  //Retains previous state
+    endtable
+endprimitive
+
+
+// T-FlipFlop
+primitive tff(q,clk,clr);
+	input clk,clr;
+	output reg q;
+	table
+  //  clk   clr  :  q  :  q_new
+       ?     1   :  ?  :   0;  //FF is cleared
+       ?    (10) :  ?  :   -;  //ignore -ve edge of clr
+      (10)   0   :  0  :   1;  //FF toggles at -ve edge of clk
+      (10)   0   :  1  :   0;  // - do -
+      (0?)   0   :  ?  :   -;  // ignore +ve edge of clk
+    endtable
+endprimitive
+
+
+// Constructing a 6-bit ripple counter using T-FlipFlops
+primitive ripple_counter(count,clk,clr);
+	input clk,clr;
+	output [5:0] count;
+tff T0 (count[0],clk,clr);
+tff T1 (count[1],count[0],clr);
+tff T1 (count[2],count[1],clr);
+tff T1 (count[3],count[2],clr);
+tff T1 (count[4],count[3],clr);
+tff T1 (count[5],count[4],clr);
+endprimitive
+
+
+// Negative edge sensitive JK FlipFlop
+primitive jk_ff(q,j,k,clk,clr);
+	input j,k,clk,clr;
+	output reg q;
+	table
+   // j  k  clk  clr : q : q_new 
+      ?  ?   ?    1  : ? :  0;	// clear
+      ?  ?   ?  (10) : ? :  -;	// ignore .. no change
+      0  0  (10)  0  : ? :  -;  // No change
+      0  1  (10)  0  : ? :  0;	// reset
+      1  0  (10)  0  : ? :  1;	// set
+      1  1  (10)  0  : 0 :  1;	// Toggle
+      1  1  (10)  0  : 1 :  0;	// Toggle		f can be used instead of (10)
+      ?  ?  (01)  0  : ? :  -;	// No change	r can be used instead of (01)
+    endtable
+endprimitive
