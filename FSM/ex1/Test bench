@@ -1,0 +1,20 @@
+module test;
+  reg clk;
+  wire [2:0] out;
+  
+  cyclic_lamp DUT(.clk(clk), .light(out));
+  
+  initial
+    clk = 1'b0;
+  
+  initial
+    forever #5 clk = ~clk;
+  
+  initial
+    begin
+      $dumpfile("cyclic_lamp.vcd");
+      $dumpvars(0,test);
+      $monitor($time, " RGY = %b",out);
+      #100 $finish;
+    end
+endmodule
