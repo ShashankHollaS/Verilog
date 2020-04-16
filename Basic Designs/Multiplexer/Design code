@@ -1,0 +1,26 @@
+// Behavioral description of 16:1 MUX
+
+module mux16_to_1(in,sel,out);
+  input [15:0]in;
+  input [3:0]sel;
+  output out;
+  assign out = in[sel];
+ endmodule
+
+
+// 2:1 MUX using procedural statement
+
+module mux_2_1(in0,in1,s,f);
+  input in0,in1,s;
+  output reg f;
+  
+  always @(in0,in1,s)  // always @(*)  this can also be used
+    begin
+      if(s)
+        f = in1;
+      else
+        f = in0;
+    end
+endmodule
+
+
