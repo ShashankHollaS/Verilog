@@ -1,0 +1,51 @@
+/*
+module test;
+  reg [3:0] a,b; reg m;
+  wire [3:0]s;
+  wire cout,v;
+  
+  add_sub_4_bit DUT(a,b,m,s,cout,v);
+  
+  initial
+    begin
+      #1 a = 4'hf; b = 4'ha; m = 0;
+      #1 $display($time ," S = %h, Cout = %b, V = %b",s,cout,v);
+      #1 a = 4'h5; b = 4'h8; m = 0;
+      #1 $display($time ," S = %h, Cout = %b, V = %b",s,cout,v);
+      #1 a = 4'hb; b = 4'h3; m = 0;
+      #1 $display($time ," S = %h, Cout = %b, V = %b",s,cout,v);
+      #1 a = 4'hb; b = 4'h3; m = 1;
+      #1 $display($time ," S = %h, Cout = %b, V = %b",s,cout,v);
+      #1 a = 4'ha; b = 4'hf; m = 1;
+      #1 $display($time ," S = %h, Cout = %b, V = %b",s,cout,v);
+      #1 a = 4'h3; b = 4'he; m = 1;
+      #1 $display($time ," S = %h, Cout = %b, V = %b",s,cout,v);
+      #1 $finish;
+    end
+endmodule
+*/
+
+//Generating random test vectors
+module test;
+  reg [3:0] a,b;
+  reg m;
+  wire [3:0] s;
+  wire cout,v;
+  integer myseed;
+  
+  add_sub_4_bit DUT (a,b,m,s,cout,v);
+  
+  initial
+    myseed = 5;
+  initial
+    begin
+      repeat(5)
+        begin
+          a = $random(myseed);//myseed is optional & is used to ensure that same set of numbers are genrated each time the test is run 
+          b = $random(myseed);
+          m = 0;
+          #10 $display($time, " a = %h, b = %h, s = %h", a,b,s);
+        end
+    end
+endmodule
+      
