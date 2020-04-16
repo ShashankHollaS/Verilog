@@ -1,0 +1,16 @@
+module test;
+  reg [15:0]in;reg [3:0]sel;
+  wire out;
+  mux16_to_1 m(in,sel,out);
+  initial
+    begin
+      $dumpfile("mux_16_to_1.vcd");
+      $dumpvars(0,test);
+      #5 in = 16'hfba5;
+      #5 sel = 4'hf;
+      #5 sel = 4'h5;
+      #5 sel = 4'h2;
+      #5 $finish;
+    end
+endmodule
+      
