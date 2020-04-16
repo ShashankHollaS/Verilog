@@ -1,0 +1,19 @@
+`timescale 1ns / 100ps
+
+module test;
+  reg [15:0] x,y;
+  wire [15:0]z;
+  wire sign, carry, zero, overflow, parity;
+  
+  adder A(x,y,z,sign,carry,zero,overflow,parity);
+  initial
+    begin
+      $dumpfile("adder.vcd");
+      $dumpvars(0,test);
+      #5 x = 16'h0fff;
+      	 y = 16'hf000;
+      #5 y = 16'h8765;
+      #5 $finish;
+    end
+endmodule
+
