@@ -1,0 +1,50 @@
+// N-bit counter with asynchronous reset
+
+module counter1 (clk,reset,count);
+  parameter N = 7;
+  input clk,reset;
+  output reg [N-1:0] count;
+  
+  always @(posedge clk or posedge reset)
+    begin
+      if(reset)
+        count <= 0;
+      else
+        count <= count + 1;
+    end
+endmodule
+
+
+// Up_Down synchronous counter
+
+module counter2 (clk,load,d_in,mode,clr,count); //if load is high din will be forced. 
+  parameter N = 8;  // N-bit counter
+  input clk,load,mode,clr;
+  input [0:N-1] d_in;
+  output reg [0:N-1] count;
+  
+  always @ (posedge clk)
+    begin
+      if(load) count <= d_in;
+      else if(clr) count <= 0;
+      else if(mode) count <= count + 1; //Mode = 1 corresponds to up counting and mode = 0 corresponds to down counting
+      else 		count <= count - 1;
+    end
+endmodule
+
+// Ring counter
+
+module counter3 (clk, init, count);
+  input clk,init;
+  output reg [7:0] count;
+  
+  always @ (posedge clk)
+    begin
+      if(init) count <= 8'b10000000;
+      else 
+        begin
+        count <= count << 1;		// Alternate way :
+          count[0] <= count[7];		// count  = {count[6:0], count[7]
+      	end
+    end
+endmodule
