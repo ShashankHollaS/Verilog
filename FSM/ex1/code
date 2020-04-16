@@ -1,1 +1,62 @@
+// There are 3 lamps RED, GREEN and YELLOW that should grow cyclically with fixed time interval (say 1sec)
+// There are 3 states
+// There are no inputs and state transition occurs based on a clk signal 
+//This is a Moore machine because here the output will depend only on the states
 
+/*module cyclic_lamp (clk,light);
+  input clk;
+  output reg [2:0]light;
+  parameter RED = 3'b100, GREEN = 3'b010, YELLOW = 3'b001;
+  parameter S0 = 0, S1 = 1, S2 = 2;
+  reg [1:0] state;
+  
+  always @ (posedge clk)
+    begin
+      case (state)
+        S0: begin			// S0 means RED
+          light <= GREEN; state <= S1;
+        end
+        S1: begin			// S1 means GREEN
+          light <= YELLOW; state <= S2;
+        end
+        S2: begin			// S2 means YELLOW
+          light <= RED; state <= S0;
+        end
+        default:begin
+          light <= RED; state <= S0;
+        end
+      endcase
+    end
+endmodule*/
+
+//In the above case 5 flipflops will be generated, 2 for state and 3 for O/P
+// But we don't need to remeber the O/P as remebering state is enough here
+//Following is the improvised code to remeber only state and hence it generates only 2 FF's
+
+module cyclic_lamp (clk,light);
+  input clk;
+  output reg [2:0]light;
+  parameter RED = 3'b100, GREEN = 3'b010, YELLOW = 3'b001;
+  parameter S0 = 0, S1 = 1, S2 = 2;
+  reg [1:0] state;
+  
+  always @ (posedge clk)
+    begin
+      case (state)
+        S0: state <= S1;			// S0 means RED
+        S1: state <= S2; 			// S1 means GREEN
+        S2: state <= S0; 			// S2 means YELLOW
+        default: state <= S0;
+       endcase
+    end
+  always @ (state)
+    begin
+      case (state)		// If non-blocking statements are used then synthesizer will always generate a storage element (FlipFlop)
+        S0: light = RED;	// But if blocking statements are used then it will check for requirement of FF's if not found then it will generate Comb circuit
+        S1: light = GREEN;
+        S2: light = YELLOW;
+        default: light = RED;
+      endcase
+    end
+endmodule
+          
