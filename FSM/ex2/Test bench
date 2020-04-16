@@ -1,0 +1,30 @@
+module test;
+  reg x,clk;
+  wire parity;
+  
+  parity_checker DUT (x,clk,parity);
+  
+  initial
+    begin
+      clk = 1'b0;
+      forever #5 clk = ~clk;
+    end
+  
+  initial
+    begin
+      
+      #3 x = 1; #10 x = 1; #10 x = 0;
+      #10 x = 1; #10 x = 1; #10 x = 0;
+      #10 x = 1; #10 x = 1; #10 x = 0;
+      #5 $finish;
+    end
+  initial
+    begin
+      $dumpfile("parity.vcd");
+      $dumpvars(0,test);
+    end
+      
+      
+endmodule
+      
+        
