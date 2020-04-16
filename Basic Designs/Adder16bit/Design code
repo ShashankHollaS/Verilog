@@ -1,0 +1,11 @@
+module adder(X,Y,Z,sign,carry,zero,overflow,parity);  // X and Y are signed numbers
+  input [15:0] X,Y;
+  output [15:0]Z;
+  output sign,carry,zero,overflow,parity;
+  
+  assign {carry,Z} = X + Y; //16-bit addition
+  assign sign = Z[15];
+  assign zero = ~|Z;	// takes OR of all bits of Z and then negates the result
+  assign parity = ~^Z;	// 1 for even parity
+  assign overflow = (X[15] & Y[15] & ~Z[15]) || (~X[15] & ~Y[15] & Z[15]);
+endmodule
