@@ -1,0 +1,73 @@
+//Design of a sequence detector
+//Circuit accepts a serial bit stream 'x' as I/P and produces a serial bit stream 'y' as O/P
+//Whenever the bit pattern 0110 appears, it outputs y = 1, and all other times y = 0;
+//Overlaping occurences of the pattern are also detected
+// This is a Mealy machine
+
+// In the first code both state and y will be mapped to a FlipFlop
+// In the second code only PS will be mapped to a FlipFlop
+
+
+/*module seq_detect (x,clk,y);
+  input x,clk;
+  output reg y;
+  parameter S0 = 0, S1 = 1, S2 = 2, S3 = 3;
+  reg [2:0] state;
+  
+  initial
+    state = S0;
+    
+  always @ (posedge clk)
+    case(state)
+      S0: begin
+        state <= x ? S0:S1;
+        y <= 0;
+      end
+      S1: begin
+        state <= x ? S2:S1;
+        y <= 0;
+      end
+      S2: begin
+        state <= x ? S3:S1;
+        y <= 0;
+      end
+      S3: begin
+        state <= x ? S0:S1;
+        y <= x ? 0:1;
+      end
+    endcase
+endmodule*/
+
+
+module seq_detect (x,clk,y);
+  input x,clk;
+  output reg y;
+  parameter S0 = 0, S1 = 1, S2 = 2, S3 = 3;
+  reg [2:0] PS,NS;    // Present_state and Next_state
+  
+  initial
+    PS = S0;
+    
+  always @ (posedge clk)
+    PS <= NS;
+  
+  always @ (PS, x)
+    case(PS)
+      S0: begin
+        NS = x ? S0:S1;
+        y = 0;
+      end
+      S1: begin
+        NS = x ? S2:S1;
+        y = 0;
+      end
+      S2: begin
+        NS = x ? S3:S1;
+        y = 0;
+      end
+      S3: begin
+        NS = x ? S0:S1;
+        y = x ? 0:1;
+      end
+    endcase
+endmodule
