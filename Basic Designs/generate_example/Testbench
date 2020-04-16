@@ -1,0 +1,14 @@
+module test;
+  reg [15:0] x,y;
+  wire [15:0] out;
+  
+  bxor DUT(.a(x), .b(y), .f(out));
+  
+  initial
+    begin
+      $monitor("x = %b, y = %b, out = %b",x,y,out);
+      x = 16'habcd; y = 16'h00ff;
+      #5 x = 16'h1234; y = 16'h89ab;
+      #5 $finish;
+    end
+endmodule
