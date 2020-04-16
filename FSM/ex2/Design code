@@ -1,0 +1,28 @@
+//Design of a serial parity detector
+//A continuous stream of bits is fed to the circuit in synchronism with a clock. The circuit will be generating a continuous bit stream as output, where 1 indicates "odd no. of ones seen so far" and 0 indicates "even no. of ones seen so far"
+// This is a Moore machine
+
+module parity_checker (x,clk,parity);
+  input x,clk;
+  output reg parity;
+  parameter S0 = 0, S1 = 1;
+  parameter odd = 0, even = 1;
+  reg state;
+  
+  initial
+    state = S0;
+  
+  always @ (posedge clk)
+    begin
+      case(state)
+        S0: state <= x ? S1:S0;
+        S1: state <= x ? S0:S1;
+       
+      endcase
+    end
+  always @ (state)
+    case(state)
+      S0: parity = 0;
+      S1: parity = 1;
+    endcase
+endmodule
