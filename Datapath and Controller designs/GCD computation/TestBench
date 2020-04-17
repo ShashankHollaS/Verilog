@@ -1,0 +1,31 @@
+module test;
+  reg [15:0] data_in; reg start,clk;
+  wire done;
+  
+  GCD_datapath DUT1(data_in,ldA,ldB,sel1,sel2,sel_in,clk,lt,gt,eq);
+  CONTROLLER DUT2(clk,start,lt,gt,eq,done,ldA,ldB,sel1,sel2,sel_in);
+  
+  initial
+    begin
+      clk = 1'b0;
+      #3 start = 1'b1;
+      #500 $finish;
+    end
+  initial
+    forever #5 clk = ~clk;
+  initial
+    begin
+      $dumpfile("gcd.vcd");
+      $dumpvars(0,test);
+      $monitor($time,"%d %d %b %b",DUT1.Aout,DUT1.Bout,lt,eq,done);
+    end
+  
+  initial
+    begin
+      #17 data_in = 12;//While using 2nd controller module give #7 delay instead of #17
+      #10 data_in = 15;
+    end
+endmodule
+    
+
+
