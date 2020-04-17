@@ -1,0 +1,169 @@
+// GCD of two numbers
+
+module GCD_datapath(data_in,ldA,ldB,sel1,sel2,sel_in,clk,lt,gt,eq);
+  parameter N = 16;
+  input [N-1:0] data_in;
+  input ldA,ldB,sel1,sel2,sel_in,clk;
+  output eq,lt,gt;
+  wire [N-1:0] Bus,Aout,Bout,X,Y,SubOut,data_out;
+  assign Bus = data_out;
+  
+  PIPO A (ldA,clk,Bus,Aout);
+  PIPO B (ldB,clk,Bus,Bout);
+  SUBTRACTOR SUB (X,Y,SubOut);
+  COMPARATOR COMP (Aout,Bout,lt,gt,eq);
+  MULTIPLEXER MUX1 (Aout,Bout,sel1,X);
+  MULTIPLEXER MUX2 (Aout,Bout,sel2,Y);
+  MULTIPLEXER MUX3 (data_in,SubOut,sel_in,data_out);
+endmodule
+
+module PIPO(load,clk,d_in,d_out); 
+  parameter N = 16;
+  input [N-1:0] d_in;
+  input load,clk;
+  output reg [N-1:0] d_out;
+  
+  always @ (posedge clk)
+    begin
+      if(load) d_out <= d_in;
+    end
+endmodule
+
+
+
+module SUBTRACTOR(IP1,IP2,OP);
+  parameter N = 16;
+  input [N-1:0] IP1,IP2;
+  output reg [N-1:0] OP;
+  
+  always @(*)
+    OP <= IP1 - IP2;
+endmodule
+
+module COMPARATOR(IP1,IP2,lt,gt,eq);
+  parameter N = 16;
+  input [N-1:0] IP1,IP2;
+  output  lt,gt,eq;
+  
+  assign gt = (IP1 > IP2);
+  assign lt = (IP1 < IP2);
+  assign eq = (IP1 == IP2);
+endmodule
+
+module MULTIPLEXER(IP1,IP2,sel,OP);
+  parameter N = 16;
+  input [N-1:0] IP1,IP2;
+  input sel;
+  output  [N-1:0]OP;
+  
+  assign OP = sel?IP2:IP1;
+endmodule
+
+module CONTROLLER(clk,start,lt,gt,eq,done,ldA,ldB,sel1,sel2,sel_in);
+  input clk,eq,start,lt,gt;
+  output reg ldA,ldB,sel1,sel2,sel_in,done;
+  parameter S0 = 3'b0, S1 = 3'b001, S2 = 3'b010, S3 = 3'b011, S4 = 3'b100, S5 = 3'b101;
+  reg [2:0] state;
+  
+  always @ (posedge clk)
+    case(state)
+      S0: if(start) state <= S1;
+      S1: state <= S2;
+      S2: begin #2
+        if(lt) state <= S3;
+        else if(gt) state <= S4;
+        else if(eq) state <= S5;
+      end
+      S3:begin #2
+        if(lt) state <= S3;
+        else if(gt) state <= S4;
+        else if(eq) state <= S5;
+      end
+      S4: begin #2
+        if(lt) state <= S3;
+        else if(gt) state <= S4;
+        else if(eq) state <= S5;
+      end
+      S5: state <= S5;
+      default: state <= S0;
+    endcase
+  
+  always @ (state)
+    case(state)
+      S0: begin #1 ldA = 0;ldB = 0; sel1 = 0; sel2 = 0; sel_in = 0; done = 0;end
+      S1: begin #1 ldA = 1;end
+      S2: begin #1 ldA = 0;ldB = 1;end
+      S3: begin #1 sel1 = 1; sel_in = 1;ldB = 1;ldA = 0;sel2 = 0;   end
+      S4: begin #1 ldA = 1;sel2 = 1;ldB = 0; sel1 = 0;sel_in = 1;end
+      S5: begin #1 ldA = 0;sel_in = 0;ldB = 0;done = 1;end
+      default:begin #1 ldA = 0;ldB = 0;done = 0;end
+    endcase
+endmodule
+
+// In the above controller module, in the clock edge activated always block we are doing both state change and computation of next state
+//A better approach will be to:
+//i.Only trigger the state change in the clock activated always block
+//ii.In a seperate always block using blocking assignments compute next state
+
+
+
+/*module CONTROLLER(clk,start,lt,gt,eq,done,ldA,ldB,sel1,sel2,sel_in);
+  input clk,eq,start,lt,gt;
+  output reg ldA,ldB,sel1,sel2,sel_in,done;
+  parameter S0 = 3'b0,S1 = 3'b001,S2 = 3'b010, S3 = 3'b011, S4 = 3'b100, S5 = 3'b101;
+  reg [2:0] state,next_state;
+  
+  initial
+    next_state = S0;
+  
+  always @ (posedge clk)
+    state <= next_state;
+
+  always @ (state)
+    case(state)
+      S0: begin
+        if(start) next_state = S1;
+        ldA=1;ldB=0;sel1=0; sel2 = 0; sel_in = 0;done=0;end
+      
+      S1: begin next_state = S2;ldA = 0;ldB = 1;end
+      
+      S2: if(lt) begin 
+        next_state = S3;sel1 = 1; sel2 = 0; sel_in = 1;
+        #1 ldA = 0;ldB = 1;end
+        
+        else if(gt) begin
+          next_state = S4;sel1 = 0; sel2 = 1;sel_in = 1;
+          #1ldB = 0;ldA = 1;end
+
+        else if(eq) begin
+          next_state = S5;done = 1;end
+        
+      S3:if(lt) begin 
+        next_state = S3;sel1 = 1;sel2 = 0; sel_in = 1;
+        #1 ldA = 0;ldB = 1;end
+        
+        else if(gt) begin
+          next_state = S4;sel1 = 0;sel2 = 1; sel_in = 1;
+          #1ldB = 0;ldA = 1;end
+
+        else if(eq)begin
+          next_state = S5;done = 1;end
+        
+      S4: if(lt) begin 
+        next_state = S3;sel1 = 1;sel2 = 0;sel_in = 1;
+        #1 ldA = 0;ldB = 1;end
+        
+        else if(gt) begin
+          next_state = S4;sel1 = 0;sel2 = 1;sel_in = 1;
+          #1ldB = 0;ldA = 1;end
+
+      else if(eq) begin
+          next_state = S5;done = 1;ldA = 0;end
+      
+      S5: begin next_state = S5;
+        ldA = 0;sel_in = 0;ldB = 0;done = 1;end
+      default:begin next_state = S0;ldA=0;ldB=0;done=0;end
+    endcase
+  
+endmodule*/ 
+
