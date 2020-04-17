@@ -1,0 +1,30 @@
+module test;
+  reg [15:0] data_in; reg start,clk;
+  wire done;
+  
+  mul_datapath DUT1(data_in,ldA,ldB,ldP,clrP,decB,clk,eqz);
+  CONTROLLER DUT2(clk,eqz,start,done,ldA,ldB,ldP,decB,clrP);
+  
+  initial
+    begin
+      clk = 1'b0;
+      #3 start = 1'b1;
+      #500 $finish;
+    end
+  initial
+    forever #5 clk = ~clk;
+  initial
+    begin
+      $dumpfile("mul.vcd");
+      $dumpvars(0,test);
+      $monitor($time,"%d %b",DUT1.Y,done);
+    end
+  
+  initial
+    begin
+      #17 data_in = 17;
+      #10 data_in = 5;
+    end
+endmodule
+    
+
